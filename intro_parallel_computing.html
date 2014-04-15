@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<meta charset="utf-8"><meta name="description" content="introduction to parallel computing"><meta name="author" content="Mark Cheeseman">
+<title>Introduction to Parallel Computing</title>
+<!-- One section is one slide -->
+<section>    <!-- This is the first slide -->    <h2>Introduction to Parallel Computing</h2>
+    <footer> Mark Cheeseman<br>      <font size='-1'>mche807@nesi.org.nz</font>    </footer></section>
+<section>    <header><font color="white">Outline</font></header>     <br><br><br>
+    <ol>       <li> Rise of parallel computing         <li> Common reasons why people resist parallel computing       <li> Fundamentals of parallel computing       <li> Examples    </ol>	</section>
+<section>    <h2>Rise of parallel computing</h2></section>
+<section>
+    <header>      <font color="white">Death of the mainframe</font>    </header>
+       <p> <br><br><br>Mainframes used to be the only game in town when it come to tackling scientific/numerical problems of interest.  These beasts were awesome at this work but had two fundamental drawbacks:<br><br>
+<strong>Expenses:</strong> their hardware was costly and big.  Special datacenters were required to house, power and cool them. Skilled staff required to operate and administer them.<br><br> 
+<strong>Usability:</strong> vendors had their own programming APIs and standards, software selection was limited.</p>
+       
+</section>
+<section>
+    <header>        <font color="white">Death of the mainframe</font>    </header>
+    <figure><img src='images/nec-sx5.jpg'></figure> 
+    <p><br><br><br>The NEC SX-5 at the Swiss National Supercomputer Centre (1999-2004) had a max measured 	performance of 65 GFLOPs, covered a floor area of 55m<sup>2</sup> and consumed 55 kW of power at peak load.<br><br>
+One can buy a new Mac Pro configured with up to 7 TFLOPS of performance for less than 12,500NZD.<br>
+    <font color="red">Supercomputing is now readily available to the masses.</font></p>  
+</section>
+<section>
+   <header>   <font color="white">Powerful commodity hardware</font>   </header>
+  <figure>  <img src='images/Intel_CPU.jpg'>  </figure>
+   <p><br><br><br><strong>Processors</strong><br>
+   Modern CPUs have a max performance on the order 100-300 GFLOPs.  Rise in mobile and ultra-scale computing has    driven improvements in power efficiency.<br><br>
+<strong>Networking</strong><br>
+Multiple high-speed network technologies exist (InfiniBand, Ethernet).  No need to rely on specialized networks from a particular vendor.</p>
+</section>
+<section>
+   <header>   <font color="white">Powerful commodity hardware</font>   </header>
+  <figure>  <img src='images/InsideanSSD.jpg'>  </figure>
+   <p><br><br><br><strong>Storage</strong><br>   High-speed and parallel filesystems now available to anyone.  Free and open-sourced filesystems available.     SSDs are having a disruptive effect on data-intensive computing.<br><br>  External connections (USB3, Thunderbolt)    allow high-speed access to large multi-terabyte storage (disks, tape).</p>
+</section>
+<section>
+    <header>        <font color="white">Powerful commodity hardware</font>    </header>     <figure><img src='images/tesla_gpu.jpg'></figure>
+    <p><br><br><br>Popularity in accelerator technology has risen sharply in recent years.</p>    <ol>	       <li> New software frameworks (CUDA, OpenCL) and initiatives (OpenACC) have greatly increased the 	   usability of these devices.       <li> Hardware vendors have leveraged lower-priced commodity devices to engineer and manufacture 	   these specialized devices.	</ol>    <p><em><font color="red">These devices exploit massive parallelization and vectorization.</font></em></p>   
+</section>
+<section>
+    <header>    <font color="white">The Beowulf</font>    </header>
+    <p><br><br><br>In 1994, two NASA scientists strug together 30 identical PCs to create a scientific 	computing system they called the <em>Beowulf Cluster</em>.  The Message Passing Interface software was 	used to allow programmers to use multiple PCs to work on a single problem.  Their design formed the 	basis for the common cluster design now found worldwide.<br><br>
+    This was the beginning of the big push in distributed computing (and parallel computing).</p>
+</section>
+<section>    <figure-fullpage>       <img src='images/beowulf_cluster.jpg'>    </figure-full-page></section>
+<section>
+    <header>    <font color="white">Misintepretation of Moore's Law</font>    </header>
+    <p><br><br><br><strong><em>It's not a law!!</em></strong><br>    Gordon Moore observed that the number of transistors on integrated circuits seem to double every 2 years.  	Another Intel manager, David House, suggested that improved manufacturing practices would lower the time to 	18 months.<br><br><strong><em>It refers to transistor density -not clock rate</em></strong><br>For ~42 years, the increased transistor counts meant higher clock rates and more instruction-level parallelism.  Users became accustom to newer CPUs speeding up their applications "auto-magically".</p>  
+</section>
+<section>
+    <header>    <font color="white">Misintepretation of Moore's Law</font>    </header>
+    <figure><img src='images/multicore.jpg'></figure>
+    <p><br><br><br>By ~2003, this "free speed-up" ended:<br>- transistor density couldn't be increased<br>- power requirements became unsustainable<br><br>To continue increasing computational power, CPU vendors introduced CPUs with multiple compute units (or cores).  Applications had to be able to utilize these multiple cores to harness the additional power in new CPUs.<br><br>   <font color="red">Parallel computing was no longer an optional activity and was forced into the mainstream.</font></p>   
+</section>
+<section>    <h2>Common reasons against embracing parallel computing</h2></section>
+<section>
+    <header>        <font color="white">Next year's hardware will be faster</font>    </header><br><br><br>
+    <ul>        <li> The "pseudo-Moore's Law" of a doubling of clock rate every 18 months is gone        <li> New CPUs/GPUs/Accelerators incorporate MORE parallelism        <li> More focus on energy efficiency than performance        <li> New computer hardware is getting more compilcated (CPU + Accelerators)    </ul>
+</section>
+<section>
+    <header>        <font color="white">I don't have access to parallel hardware</font>    </header><br><br><br>
+    <ul>        <li> Most current CPUs are multicore.        <li> GPU computing is a real possibility for most workstations/PCs/laptops        <li> Most universities/labs have cluster resources        <li> Cloud computing providers (such as Amazon) offer free trial usage schemes        <li> NeSI has methods for free access to its computing resources for NZ researchers    </ul>
+</section>
+<section>
+    <header>        <font color="white">No time/resource to rewrite my code</font>    </header><br><br><br>
+    <ul>        <li> adding multicore support is trival. Multiple CPU parallel support requires more work 		and planning.        <li> existing libraries/frameworks may be able do the parallel work for you        <li> have you compared the time required for parallel re-development to the time required to 		perform a serial job?        <li> NeSI can offer you assistance in parallel program development    </ul>
+</section>
+<section>
+    <header>        <font color="white">Too risky to change my workflow</font>    </header><br><br><br>
+    <ul>       <li> switch to application with more parallelism       <li> time-savings could be used for more research       <li> additional ensembles could enhance your scientific outputs       <li> code/workflow redevelopment may result you addressing more challenging/interesting science.    </ul>
+    <p2><center><strong><em>No risk, no reward</em></strong></center></p2>
+</section>
+<section>    <h2>The fundamentals of parallel computing</h2></section>
+<section>    <header>        <font color="white">Amdahl's Law</font>    </header>
+    <p><br><br><br>IBM Master Inventor, Gene Amdahl, presented a conference paper in 1967 that analytically 	explained how much a program can be sped up by adding parallelism.<br><br>
+<em><font color="red">The speedup of a program using multiple processes is limited by the time/portion of the program that can only be performed sequentially.</font></em></p>
+    <center><figure-middle>      <img src='images/amdahl-eq.jpg'>    </figure-middle></center>
+</section>
+<section>  
+    <figure-fullpage>        <img src='images/AmdahlsLaw.svg'>        <figcaption><font color="red">Doesn't take account of:<br>               - system and software overhead<br>               - workload imbalance</font>        </figcaption>    </figure-fullpage>
+</section>
+<section>
+    <header>        <font color="white">Amdahl's Law (Highlights)</font>    </header>
+    <p><br><br><br><strong>Can a program be 100% parallelized?</strong><br> Yes!  Such programs are said 	to be <em>embarassingly parallel</em>.  Processors work independently.  Little/no information is 	passed between them.<br><br>
+<strong>Bottlenecks that prevent perfect speedup</strong><br>-- passing information between tasks<br>-- I/O<br>-- spawning the individual tasks<br>-- explicit required serialization in the program</p>
+</section>
+<section>
+    <header>        <font color="white">Adding parallelism to a code</font>    </header>
+    <figure><img src='images/2d_block_domain_decomposition.png'></figure>
+    <p><br><br><br><br>There are 2 methods of adding parallelism:<br><br>    <strong>1. Domain decomposition</strong><br>    The space in which the computations are being performed is split up among the 	different processors.  I.e. every processor does the same work processes but on different 	parts of the domain.  This is the most common approach in adding parallelism to an 	application.</p> 
+</section>
+<section>  
+    <figure-fullpage><img src='images/DomainDecompositionBEM.jpg'></figure-fullpage>
+</section>
+<section>
+    <header><font color="white">Adding parallelism to a code</font></header>
+    <figure><img src='images/functional_decomp.gif'></figure>
+    <p><br><br><br><br><strong>2. Task decomposition</strong><br>    Different processors perform different operations on the same or different data. 	<br><br><br>This approach is more complicated for parallelism:<br>   -- more passing of data between tasks usually<br>   -- complicated relationship between tasks</p>
+</section>
+<section>
+    <header><font color="white">Symmetric multiprocessing (SMP)</font></header>
+    <figure><img src='images/shared-memory.png'></figure>
+    <p><br><br><br>SMP is where multiple processors share a common memory block.  No 	data movement required as all processors can "see" the entire computational domain.  	All modern multicore processors (CPUs and GPUs) can utilize SMP.<br><br>
+    Implementing parallelism is (fairly) easy and quick.  Common software implementations 	include OpenMP and CUDA.</p>
+</section>
+<section>
+    <header><font color="white">Distributed memory</font></header>
+    <figure><img src='images/distributed_memory.gif'></figure>
+    <p><br><br><br>In a distributed memory architecture each CPU only has access to its own 	local memory. If a CPU requires data from another CPU's memory, it must <em>request</em> 	and wait for that data to be passed to it.  MPI is the software interface that performs 	the data request and movement.<br><br>
+    Distributed memory allows a program to work on very large problems where the computational 	domain would exceed the local memory of any processor.</p>
+</section>
+<section>    <h2>Examples</h2></section>
+<section>
+    <header><font color="white">Numerical Integration</font></header>
+    <p><br><br><br><strong>GOAL</strong><br>     Determine the integral of some function between two given points.</p>
+    <center><figure-middle><img src='images/integral.png'></figure-middle></center>
+    <p><strong>METHOD</strong><br>    Integral is equal to area under function's curve between the specified endpoints. Approximate	this area by summation of a series of rectangles drawn under the function.  Higher the number of 	rectangles, greater the accuracy of the area approximation.</p>
+</section>
+<section>
+    <header><font color="white">Numerical Integration</font></header>
+    <p><br><br><br>Notice that the rectangles method introduces some error (denoted by the red).  But 	we can decrease this error by increasing the number of rectangles (or decreasing rectangle width).</p>
+    <center>	   <figure-middle><img src='images/integral_rectangles.png'></figure-middle>       <figure-middle><img src='images/integral_rectangles_higher_resolution.png'></figure-middle>    </center>
+    <p>Integral turns into a simple summation.  Let x be the width of a single rectangle.</p>
+    <center><figure-middle>       <img src='images/area_summation.png'>    </figure-middle></center>
+</section>
+<section>
+    <header><font color="white">Numerical Integration</font></header>
+    <p><br><br><br>A simple algorithm would be:<br><p/>    <pre><code>rec_width = (some_constant)     sum = 0.0     for n = 1,num_rectangles:         sum = sum + F(x<sub>n</sub>) * rec_width</code></pre>  
+    <p>Key observations:</p>    <ul>       <li> most of the work concentrated in the for-loop       <li> area of each rectangle can be independently computed       <li> order of rectangle summation could be important*    </ul> 
+    <p><em><font color="red">*Adding a very small number to a very large number in a finite number 	system can lead to inaccuracy!</font></em></p></section>
+<section>
+    <header><font color="white">Numerical Integration</font></header>
+    <p><br><br><br><strong>PARALLELIZATION METHOD</strong><br>Break the global sum into a a series of 	partial sums that are computed on individual processors.<br><p/>
+    <center><figure-middle2>       <img src='images/partial_sums_eqn.png'>    </figure-middle2></center>  
+    <p><strong>i<sub>1</sub></strong> and <strong>i<sub>2</sub></strong> are range of rectangles that 	each CPU works.  In the 4 CPU example, if we assume that there are 100 rectangles in total:</p>    <ul>       <li>CPU 1 would work on rectangles 1-25       <li>CPU 2 would work on rectangles 26-50       <li>CPU 3 would work on rectangles 51-75       <li>CPU 4 would work on rectangles 76-100    </ul></section><section>    <header><font color="white">Numerical Integration</font></header>	<br><br><br>    <pre><code>rec_width = (some_constant)     <font color="blue">sum = 0.0</font>     num_rectangles_per_cpu = num_rectangles / num_cpu     for n = 1 to num_rectangles_per_cpu:         if (on CPU1) j = n         if (on CPU2) j = n + num_rectangles_per_cpu         if (on CPU3) j = n + 2*num_rectangles_per_cpu         if (on CPU4) j = n + 3*num_rectangles_per_cpu         <font color="blue">sum = sum + F(x<sub>j</sub>) * rec_width</font>		     global_sum = 0.0    for n = 1 to num_cpu:       global_sum = global_sum + sum[on CPU n]	</code></pre></section><section>    <header><font color="white">Numerical Integration</font></header>    <p><br><br><br><strong>LOCAL vs GLOBAL SCOPE VARIABLES</strong><br>    <font color="blue">sum</font> will have a different value on each different CPUs. It is an example of a 	local-scope variable.  CPUs will not know the values of local variables belonging to other CPUs.<br><br>	<font color="red">global_sum</font>, <font color="red">num_rectangles_per_cpu</font> and 	<font color="red">num_cpus</font> are examples of global variables.  Values of these variables are known    or accessible to all CPUs.<br><br>		<strong>The most common mistakes in parallel programming involve programmers not realizing the proper 	scope of variables.</strong></section>
+<section>
+    <header><font color="white">VOLTERRA Code</font></header>
+    <p><br><br><br><strong>GOAL</strong><br>     Predict the in-situ electric field (E) in a volume of dielectric of arbitrary size and shape that is	bombarded by an incident EM pulse.<br><br>    <strong>METHOD</strong><br>    Dielectric volume has no initial E field. As the pulse passes through the volume, it induces an E field.  	The total electric field at any given point is</p>	<center><strong>E<sub>total</sub>=E<sub>pulse</sub>+E<sub>scatter</sub></strong></center>	
+</section><section>    <header><font color="white">VOLTERRA Code</font></header>    <p><br><br><br>E<sub>scatter</sub> is the induced E between different points that have experienced the pulse.	The full volume integral equation describing the E field evolution is</p>	<center><figure-middle2>       <img src='images/tdvie_eqn.png'>    </figure-middle2></center>		<p><strong>R</strong> is the distance between the point being evaluated and the points that have already 	experienced the incident pulse.<br><br>	<font color="red">This a form of the classical N-body problem</font></p>	</section><section>    <header><font color="white">VOLTERRA Code</font></header>    <p><br><br><br>A predictor-corrector approach to solve the integral equation.</p>	<pre><code>for 1 to num_timesteps:       for each point in volume:           evaluate integral with E<sub>TOTAL</sub> from last timestep           create updated E<sub>TOTAL</sub> value           re-evaluate integral term with updated E<sub>TOTAL</sub>           correct E<sub>TOTAL</sub> as final value for this timestep</code></pre>	<p>Integral is approximated by a sum over all points in volume.</p>	<center><figure-middle2>       <img src='images/tdvie_sum_eqn.png'>    </figure-middle2></center>	</section><section>    <header><font color="white">VOLTERRA Code</font></header>    <p><br><br><br>Similarities with simple numerical integration example</p>	<ul>	    <li>work concentrated inside a loop		<li>same domain decomposition approach can be applied		<li>summation order not important	</ul>	<p><strong>PARALLELIZATION METHOD</strong><br>	Volume is subdivided into a number of grid-points.  These grid points are gathered into	regions that are allocated to individual CPUs. Each CPU is responsible for evaluating the 	integral for only the points it "owns". 	</p>	</section><section>    <header><font color="white">VOLTERRA Code</font></header>    <br><br><br><pre><code>sum = 0.0     for n = 1 to num_cpus         sum = sum + terms for points located in CPU's 'region'         for i = 1 to num_cpus (i /= n):             determines sum terms for points between CPU n and i             terms sent to CPU n             sum = sum + terms</code></pre>	<p><strong>Key Points</strong><br></p>	<ul>	    <li>entire global field never fully formed.  Each CPU holds a piece of the updated global domain.		<li>serial bottleneck exists as one needs to loop over all CPUs to update each CPU's section of the global domain.	</ul></section><section>    <header><font color="white">VOLTERRA Code</font></header>    <p><br><br><br><strong>Performance</strong><br>	Even with obvious bottleneck, algorithm scales nicely on IBM Blue Gene/P platform.  With a large enough	computational domain, application has run efficiently at 32,768 individual CPUs.	</p></section><section>    <header><font color="white">Unified Model</font></header>		<p><br><br><br>The <strong>Unified Model (UM)</strong> is the numerical model developed at the UK MetOffice	for climate and weather research and forecasting.  It contains hundreds of thousands of lines of code.  It is 	comprised of 4 sub-models:</p>	<ol>	   <li> UM - atmosphere model	   <li> NEMO - ocean model	   <li> CICE - sea ice model	   <li> JULES - land processes model	</ol>	<p>Each sub-model is a fully parallel application utilizing domain (and task) decomposition.</p></section><section>      <figure-fullpage><img src='images/climate_model_parts.jpg'></figure-fullpage></section><section>    <header><font color="white">Unified Model</font></header>		<p><br><br><br>One can run 1 or more sub-models for a simulation. For example, </p>	<ul>	   <li> EcoConnect runs use UM+JULES for its weather forecasts	   <li> Olaf Morgenstern uses UM+JULES+NEMO+CICE for his climate runs	</ul>	<p>Running sub-models is an example of task decomposition.  The CPUs allocated to the "full" UM job are	divided between the running sub-models.  This division is usually controlled by input from the user.<br><br>	The most difficult part is when information needs to be passed between the different tasks.</p>	</section><section>    <header><font color="white">Unified Model</font></header>		<p><br><br><br>One can run 1 or more sub-models for a simulation. For example, </p>	<ul>	   <li> EcoConnect runs use UM+JULES for its weather forecasts</li>	   <li> Olaf Morgenstern uses UM+JULES+NEMO+CICE for his climate runs</li>	</ul>	<p>Running sub-models is an example of task decomposition.  The CPUs allocated to the "full" UM job are	divided between the running sub-models.  This division is usually controlled by input from the user.<br><br>	The most difficult part is when information needs to be passed between the different tasks.</p>	</section><section>    <header><font color="white">Unified Model</font></header>		<p><br><br><br><strong>Purely internal</strong><br>	Task decomposition is controlled by IF-THEN calls in the main code. Information is available and 	readily passed inside the main application.  This is how the UM passes information between the atmosphere 	and land sub-models<br><br>	<strong>Internal calls</strong><br>	Another software library or application performs the information exchange.  However, it provides	function calls that are used inside the main application so the passing of information still appears to be	internal.  This is how the UM passes information between the atmosphere and sea-ice/ocean sub-models.</p>	</section><section>    <header><font color="white">Unified Model</font></header>		<p><br><br><br><strong>Externally</strong><br>	Some applications use a "loose-coupling" method.  Usually this involves information being passed by	files.  Eg. Output file of one sub-model is used later as input for another sub-model.  Easy, but least	performing, form of information passing.</p>	</section>
+<!-- Your Style -->
+<!-- Define the style of your presentation -->
+
+<!-- Maybe a font from http://www.google.com/webfonts ? -->
+<link href='http://fonts.googleapis.com/css?family=Oswald' rel='stylesheet'>
+<style>  html, .view body { background-color: black; counter-reset: slideidx; }
+  body, .view section { background-color: white; border-radius: 12px }
+  /* A section is a slide. It's size is 800x600, and this will never change */
+  section, .view head > title {
+      /* The font from Google */
+      font-family: 'Oswald', arial, serif;
+      font-size: 30px;
+  }
+
+  .view section:after {
+    counter-increment: slideidx;
+    content: counter(slideidx, decimal-leading-zero);
+    position: absolute; bottom: -80px; right: 100px;
+    color: white;
+  }
+  .view head > title {    color: white;    text-align: center;    margin: 1em 0 1em 0;  }
+  h1 {    margin-top: 200px;    text-align: center;    font-size: 80px;  }
+  h2 {    margin-top: 200px;    text-align: center;    font-size: 60px;  }
+  h3 {    margin: 100px 0 50px 100px;  }
+  ul {     font-size: 22px;     margin: 10px 100px 10px;  }  ol {      font-size: 22px;      margin: 10px 100px 10px;  }    dl {      font-size: 22px;      margin: 10px 52px 10px;  }     
+  p {    font-size: 25px;    margin: 20px 60px 10px;  }
+  code {    font-size: 20px;    margin: 20px 60px 10px;  }
+  blockquote {    height: 100%;    background-color: black;    color: white;    font-size: 60px;    padding: 50px;  }
+  blockquote:before {    content: open-quote;  }
+  blockquote:after {    content: close-quote;  }  /* Figures are displayed full-page, with the caption
+     on top of the image/video */
+  figure-bottom {    width: 20%;    height: 20%;    margin-top: 10px;    margin-left: 10px;    margin-right: 0px;    margin-bottom: 5px;    float: right;  }
+  figure {    width: 40%;    height: 40%;    margin-top: 98px;    margin-left: 0px;    margin-right: 15px;    float: left;  }
+  figure > * {    position: absolute;  }
+  figure > img, figure > video {    width: 40%; height: 40%;  }
+  figcaption {    margin: 70px 100px;    font-size: 20px;    background: white;  }
+  figure-fullpage {    background-color: black;    width: 100%;    height: 100%;  }
+  figure-fullpage > * {    position: absolute;  }
+  figure-fullpage > img, figure-fullpage > video {    width: 100%; height: 100%;  }
+  figure-bottom {    width: 30%;    height: 30%;    margin: 10px 10px 10px;  }
+  figure-bottom > * {    position: absolute;  }
+  figure-bottom > img, figure-bottom > video {    margin: 10px 10px 10px;    width: 30%; height: 30%;  }
+  figure-middle > img, figure-middle > video {    margin: 10px 10px;    width: 20%;     height: 20%;  }
+  figure-middle2 > img, figure-middle > video {    margin: 10px 10px;    width: 80%;     height: 80%;  }
+  footer {    position: absolute;    bottom: 0;    width: 100%;    padding: 10px;    text-align: right;    background-color: white;    border-top: 2px solid #CCC;    background-image:url(images/NeSI_Logo.jpg);    background-repeat:no-repeat;  }
+  footer2 {     position: absolute;     bottom: 0;     width: 100%;     padding: 30px;     background-color: white;     border-top: 2px solid #CCC;     background-image:url(images/nesi_collaborator_logos.png);     background-repeat:no-repeat;  }
+  header {    position: absolute;    bottom: 200;    width: 100%;    padding: 25px;    text-align: left;    text-color: white;    background-color: #25383C;    border-bottom: 2px solid #CCC;    background-image:url(images/NeSI_Logo.jpg);    background-repeat:no-repeat;    background-position:right;    margin: 0px 0px;  }
+  /* Transition effect */
+  /* Feel free to change the transition effect for original
+     animations. See here:
+     https://developer.mozilla.org/en/CSS/CSS_transitions
+     How to use CSS3 Transitions: */
+  section {    -moz-transition: left 400ms linear 0s;    -webkit-transition: left 400ms linear 0s;    -ms-transition: left 400ms linear 0s;    transition: left 400ms linear 0s;  }
+  .view section {    -moz-transition: none;    -webkit-transition: none;    -ms-transition: none;    transition: none;  }
+  .view section[aria-selected] {    border: 5px red solid;  }  /* Before */
+  section { left: -150%; }
+  /* Now */
+  section[aria-selected] { left: 0; }
+  /* After */
+  section[aria-selected] ~ section { left: +150%; }
+  /* Incremental elements */
+  /* By default, visible */
+  .incremental > * { opacity: 1; }
+  /* The current item */
+  .incremental > *[aria-selected] { opacity: 1; }
+  /* The items to-be-selected */
+  .incremental > *[aria-selected] ~ * { opacity: 0; }
+
+  /* The progressbar, at the bottom of the slides, show the global
+     progress of the presentation. */
+  #progress-bar {
+    height: 2px;
+    background: #AAA;
+  }
+</style>
+
+<!-- {{{{ dzslides core
+#
+#
+#     __  __  __       .  __   ___  __
+#    |  \  / /__` |    | |  \ |__  /__`
+#    |__/ /_ .__/ |___ | |__/ |___ .__/ core :€
+#
+#
+# The following block of code is not supposed to be edited.
+# But if you want to change the behavior of these slides,
+# feel free to hack it!
+#
+-->
+
+<div id="progress-bar"></div>
+
+<!-- Default Style -->
+<style>
+  * { margin: 0; padding: 0; -moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box; }
+  [role="note"] { display: none; }
+  body {
+    width: 800px; height: 600px;
+    margin-left: -400px; margin-top: -300px;
+    position: absolute; top: 50%; left: 50%;
+    overflow: hidden;
+    display: none;
+  }
+  .view body {
+    position: static;
+    margin: 0; padding: 0;
+    width: 100%; height: 100%;
+    display: inline-block;
+    overflow: visible; overflow-x: hidden;
+    /* undo Dz.onresize */
+    transform: none !important;
+    -moz-transform: none !important;
+    -webkit-transform: none !important;
+    -o-transform: none !important;
+    -ms-transform: none !important;
+  }
+  .view head, .view head > title { display: block }
+  section {
+    position: absolute;
+    pointer-events: none;
+    width: 100%; height: 100%;
+  }
+  .view section {
+    pointer-events: auto;
+    position: static;
+    width: 800px; height: 600px;
+    margin: -150px -200px;
+    float: left;
+
+    transform: scale(.4);
+    -moz-transform: scale(.4);
+    -webkit-transform: scale(.4);
+    -o-transform: scale(.4);
+    -ms-transform: scale(.4);
+  }
+  .view section > * { pointer-events: none; }
+  section[aria-selected] { pointer-events: auto; }
+  html { overflow: hidden; }
+  html.view { overflow: visible; }
+  body.loaded { display: block; }
+  .incremental {visibility: hidden; }
+  .incremental[active] {visibility: visible; }
+  #progress-bar{
+    bottom: 0;
+    position: absolute;
+    -moz-transition: width 400ms linear 0s;
+    -webkit-transition: width 400ms linear 0s;
+    -ms-transition: width 400ms linear 0s;
+    transition: width 400ms linear 0s;
+  }
+  .view #progress-bar {
+    display: none;
+  }
+</style>
+
+<script>
+  var Dz = {
+    remoteWindows: [],
+    idx: -1,
+    step: 0,
+    html: null,
+    slides: null,
+    progressBar : null,
+    params: {
+      autoplay: "1"
+    }
+  };
+
+  Dz.init = function() {
+    document.body.className = "loaded";
+    this.slides = Array.prototype.slice.call($$("body > section"));
+    this.progressBar = $("#progress-bar");
+    this.html = document.body.parentNode;
+    this.setupParams();
+    this.onhashchange();
+    this.setupTouchEvents();
+    this.onresize();
+    this.setupView();
+  }
+
+  Dz.setupParams = function() {
+    var p = window.location.search.substr(1).split('&');
+    p.forEach(function(e, i, a) {
+      var keyVal = e.split('=');
+      Dz.params[keyVal[0]] = decodeURIComponent(keyVal[1]);
+    });
+  // Specific params handling
+    if (!+this.params.autoplay)
+      $$.forEach($$("video"), function(v){ v.controls = true });
+  }
+
+  Dz.onkeydown = function(aEvent) {
+    // Don't intercept keyboard shortcuts
+    if (aEvent.altKey
+      || aEvent.ctrlKey
+      || aEvent.metaKey
+      || aEvent.shiftKey) {
+      return;
+    }
+    if ( aEvent.keyCode == 37 // left arrow
+      || aEvent.keyCode == 38 // up arrow
+      || aEvent.keyCode == 33 // page up
+    ) {
+      aEvent.preventDefault();
+      this.back();
+    }
+    if ( aEvent.keyCode == 39 // right arrow
+      || aEvent.keyCode == 40 // down arrow
+      || aEvent.keyCode == 34 // page down
+    ) {
+      aEvent.preventDefault();
+      this.forward();
+    }
+    if (aEvent.keyCode == 35) { // end
+      aEvent.preventDefault();
+      this.goEnd();
+    }
+    if (aEvent.keyCode == 36) { // home
+      aEvent.preventDefault();
+      this.goStart();
+    }
+    if (aEvent.keyCode == 32) { // space
+      aEvent.preventDefault();
+      this.toggleContent();
+    }
+    if (aEvent.keyCode == 70) { // f
+      aEvent.preventDefault();
+      this.goFullscreen();
+    }
+    if (aEvent.keyCode == 79) { // o
+      aEvent.preventDefault();
+      this.toggleView();
+    }
+  }
+
+  /* Touch Events */
+
+  Dz.setupTouchEvents = function() {
+    var orgX, newX;
+    var tracking = false;
+
+    var db = document.body;
+    db.addEventListener("touchstart", start.bind(this), false);
+    db.addEventListener("touchmove", move.bind(this), false);
+
+    function start(aEvent) {
+      aEvent.preventDefault();
+      tracking = true;
+      orgX = aEvent.changedTouches[0].pageX;
+    }
+
+    function move(aEvent) {
+      if (!tracking) return;
+      newX = aEvent.changedTouches[0].pageX;
+      if (orgX - newX > 100) {
+        tracking = false;
+        this.forward();
+      } else {
+        if (orgX - newX < -100) {
+          tracking = false;
+          this.back();
+        }
+      }
+    }
+  }
+
+  Dz.setupView = function() {
+    document.body.addEventListener("click", function ( e ) {
+      if (!Dz.html.classList.contains("view")) return;
+      if (!e.target || e.target.nodeName != "SECTION") return;
+
+      Dz.html.classList.remove("view");
+      Dz.setCursor(Dz.slides.indexOf(e.target) + 1);
+    }, false);
+  }
+
+  /* Adapt the size of the slides to the window */
+
+  Dz.onresize = function() {
+    var db = document.body;
+    var sx = db.clientWidth / window.innerWidth;
+    var sy = db.clientHeight / window.innerHeight;
+    var transform = "scale(" + (1/Math.max(sx, sy)) + ")";
+
+    db.style.MozTransform = transform;
+    db.style.WebkitTransform = transform;
+    db.style.OTransform = transform;
+    db.style.msTransform = transform;
+    db.style.transform = transform;
+  }
+
+
+  Dz.getNotes = function(aIdx) {
+    var s = $("section:nth-of-type(" + aIdx + ")");
+    var d = s.$("[role='note']");
+    return d ? d.innerHTML : "";
+  }
+
+  Dz.onmessage = function(aEvent) {
+    var argv = aEvent.data.split(" "), argc = argv.length;
+    argv.forEach(function(e, i, a) { a[i] = decodeURIComponent(e) });
+    var win = aEvent.source;
+    if (argv[0] === "REGISTER" && argc === 1) {
+      this.remoteWindows.push(win);
+      this.postMsg(win, "REGISTERED", document.title, this.slides.length);
+      this.postMsg(win, "CURSOR", this.idx + "." + this.step);
+      return;
+    }
+    if (argv[0] === "BACK" && argc === 1)
+      this.back();
+    if (argv[0] === "FORWARD" && argc === 1)
+      this.forward();
+    if (argv[0] === "START" && argc === 1)
+      this.goStart();
+    if (argv[0] === "END" && argc === 1)
+      this.goEnd();
+    if (argv[0] === "TOGGLE_CONTENT" && argc === 1)
+      this.toggleContent();
+    if (argv[0] === "SET_CURSOR" && argc === 2)
+      window.location.hash = "#" + argv[1];
+    if (argv[0] === "GET_CURSOR" && argc === 1)
+      this.postMsg(win, "CURSOR", this.idx + "." + this.step);
+    if (argv[0] === "GET_NOTES" && argc === 1)
+      this.postMsg(win, "NOTES", this.getNotes(this.idx));
+  }
+
+  Dz.toggleContent = function() {
+    // If a Video is present in this new slide, play it.
+    // If a Video is present in the previous slide, stop it.
+    var s = $("section[aria-selected]");
+    if (s) {
+      var video = s.$("video");
+      if (video) {
+        if (video.ended || video.paused) {
+          video.play();
+        } else {
+          video.pause();
+        }
+      }
+    }
+  }
+
+  Dz.setCursor = function(aIdx, aStep) {
+    // If the user change the slide number in the URL bar, jump
+    // to this slide.
+    aStep = (aStep != 0 && typeof aStep !== "undefined") ? "." + aStep : ".0";
+    window.location.hash = "#" + aIdx + aStep;
+  }
+
+  Dz.onhashchange = function() {
+    var cursor = window.location.hash.split("#"),
+        newidx = 1,
+        newstep = 0;
+    if (cursor.length == 2) {
+      newidx = ~~cursor[1].split(".")[0];
+      newstep = ~~cursor[1].split(".")[1];
+      if (newstep > Dz.slides[newidx - 1].$$('.incremental > *').length) {
+        newstep = 0;
+        newidx++;
+      }
+    }
+    this.setProgress(newidx, newstep);
+    if (newidx != this.idx) {
+      this.setSlide(newidx);
+    }
+    if (newstep != this.step) {
+      this.setIncremental(newstep);
+    }
+    for (var i = 0; i < this.remoteWindows.length; i++) {
+      this.postMsg(this.remoteWindows[i], "CURSOR", this.idx + "." + this.step);
+    }
+  }
+
+  Dz.back = function() {
+    if (this.idx == 1 && this.step == 0) {
+      return;
+    }
+    if (this.step == 0) {
+      this.setCursor(this.idx - 1,
+                     this.slides[this.idx - 2].$$('.incremental > *').length);
+    } else {
+      this.setCursor(this.idx, this.step - 1);
+    }
+  }
+
+  Dz.forward = function() {
+    if (this.idx >= this.slides.length &&
+        this.step >= this.slides[this.idx - 1].$$('.incremental > *').length) {
+        return;
+    }
+    if (this.step >= this.slides[this.idx - 1].$$('.incremental > *').length) {
+      this.setCursor(this.idx + 1, 0);
+    } else {
+      this.setCursor(this.idx, this.step + 1);
+    }
+  }
+
+  Dz.goStart = function() {
+    this.setCursor(1, 0);
+  }
+
+  Dz.goEnd = function() {
+    var lastIdx = this.slides.length;
+    var lastStep = this.slides[lastIdx - 1].$$('.incremental > *').length;
+    this.setCursor(lastIdx, lastStep);
+  }
+
+  Dz.toggleView = function() {
+    this.html.classList.toggle("view");
+
+    if (this.html.classList.contains("view")) {
+      $("section[aria-selected]").scrollIntoView(true);
+    }
+  }
+
+  Dz.setSlide = function(aIdx) {
+    this.idx = aIdx;
+    var old = $("section[aria-selected]");
+    var next = $("section:nth-of-type("+ this.idx +")");
+    if (old) {
+      old.removeAttribute("aria-selected");
+      var video = old.$("video");
+      if (video) {
+        video.pause();
+      }
+    }
+    if (next) {
+      next.setAttribute("aria-selected", "true");
+      if (this.html.classList.contains("view")) {
+        next.scrollIntoView();
+      }
+      var video = next.$("video");
+      if (video && !!+this.params.autoplay) {
+        video.play();
+      }
+    } else {
+      // That should not happen
+      this.idx = -1;
+      // console.warn("Slide doesn't exist.");
+    }
+  }
+
+  Dz.setIncremental = function(aStep) {
+    this.step = aStep;
+    var old = this.slides[this.idx - 1].$('.incremental > *[aria-selected]');
+    if (old) {
+      old.removeAttribute('aria-selected');
+    }
+    var incrementals = $$('.incremental');
+    if (this.step <= 0) {
+      $$.forEach(incrementals, function(aNode) {
+        aNode.removeAttribute('active');
+      });
+      return;
+    }
+    var next = this.slides[this.idx - 1].$$('.incremental > *')[this.step - 1];
+    if (next) {
+      next.setAttribute('aria-selected', true);
+      next.parentNode.setAttribute('active', true);
+      var found = false;
+      $$.forEach(incrementals, function(aNode) {
+        if (aNode != next.parentNode)
+          if (found)
+            aNode.removeAttribute('active');
+          else
+            aNode.setAttribute('active', true);
+        else
+          found = true;
+      });
+    } else {
+      setCursor(this.idx, 0);
+    }
+    return next;
+  }
+
+  Dz.goFullscreen = function() {
+    var html = $('html'),
+        requestFullscreen = html.requestFullscreen || html.requestFullScreen || html.mozRequestFullScreen || html.webkitRequestFullScreen;
+    if (requestFullscreen) {
+      requestFullscreen.apply(html);
+    }
+  }
+  
+  Dz.setProgress = function(aIdx, aStep) {
+    var slide = $("section:nth-of-type("+ aIdx +")");
+    if (!slide)
+      return;
+    var steps = slide.$$('.incremental > *').length + 1,
+        slideSize = 100 / (this.slides.length - 1),
+        stepSize = slideSize / steps;
+    this.progressBar.style.width = ((aIdx - 1) * slideSize + aStep * stepSize) + '%';
+  }
+  
+  Dz.postMsg = function(aWin, aMsg) { // [arg0, [arg1...]]
+    aMsg = [aMsg];
+    for (var i = 2; i < arguments.length; i++)
+      aMsg.push(encodeURIComponent(arguments[i]));
+    aWin.postMessage(aMsg.join(" "), "*");
+  }
+  
+  function init() {
+    Dz.init();
+    window.onkeydown = Dz.onkeydown.bind(Dz);
+    window.onresize = Dz.onresize.bind(Dz);
+    window.onhashchange = Dz.onhashchange.bind(Dz);
+    window.onmessage = Dz.onmessage.bind(Dz);
+  }
+
+  window.onload = init;
+</script>
+
+
+<script> // Helpers
+  if (!Function.prototype.bind) {
+    Function.prototype.bind = function (oThis) {
+
+      // closest thing possible to the ECMAScript 5 internal IsCallable
+      // function 
+      if (typeof this !== "function")
+      throw new TypeError(
+        "Function.prototype.bind - what is trying to be fBound is not callable"
+      );
+
+      var aArgs = Array.prototype.slice.call(arguments, 1),
+          fToBind = this,
+          fNOP = function () {},
+          fBound = function () {
+            return fToBind.apply( this instanceof fNOP ? this : oThis || window,
+                   aArgs.concat(Array.prototype.slice.call(arguments)));
+          };
+
+      fNOP.prototype = this.prototype;
+      fBound.prototype = new fNOP();
+
+      return fBound;
+    };
+  }
+
+  var $ = (HTMLElement.prototype.$ = function(aQuery) {
+    return this.querySelector(aQuery);
+  }).bind(document);
+
+  var $$ = (HTMLElement.prototype.$$ = function(aQuery) {
+    return this.querySelectorAll(aQuery);
+  }).bind(document);
+
+  $$.forEach = function(nodeList, fun) {
+    Array.prototype.forEach.call(nodeList, fun);
+  }
+
+</script>
+<!-- vim: set fdm=marker: }}} -->
